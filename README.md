@@ -85,7 +85,7 @@ Status commands follow the pattern S P and return various values depending on th
 Remote commands follow pattern R P n, where P is parameter as described below and n is value required (only some commands require value):
 
 | Parameter | Description | n | Return Value |
-| --- | --- | --- |
+| --- | --- | --- | --- |
 | 0 | Open Shutter | N/A | ACK only |
 | 1 | Close Shutter | N/A | ACK only |
 | 2 | Locks out parameters via the front panel | N/A | ACK only |
