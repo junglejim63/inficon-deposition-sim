@@ -58,30 +58,31 @@ class Film {
 
 class Inficon {
   constructor(port, baud) {
-    this.films = [];
+    this.d = {}; // data object for all simulated values
+    this.d.films = [];
     for (let i = 1; i < 10; i++) {
-      this.films.push(new Film(i));
+      this.d.films.push(new Film(i));
     }
-    this.name = 'Inficon Xtal thickness checker';
-    this.rate = 0;
-    this.thickness = 0;
-    this.depositTime = 0;
-    this.film = 0;
-    this.crystalLife = 50.0;
-    this.outputs = [false, false, false, false];
-    this.inputs = [false, false, false, false, false];
-    this.xtalFrequency = { status: true, value: 34.4, averaging: 1 };
-    this.powerupErrors = {
+    this.d.name = 'Inficon Xtal thickness checker';
+    this.d.rate = 0;
+    this.d.thickness = 0;
+    this.d.depositTime = 0;
+    this.d.film = 0;
+    this.d.crystalLife = 50.0;
+    this.d.outputs = [false, false, false, false];
+    this.d.inputs = [false, false, false, false, false];
+    this.d.xtalFrequency = { status: true, value: 34.4, averaging: 1 };
+    this.d.powerupErrors = {
       paramChecksum: false,
       stbyOn: true, // true on startup
       linePower: false,
       procDataChecksum: false,
     };
-    this.configSwitches = [];
-    this.shutter = false;
-    this.frontLockout = false;
-    this.outputOverride = false;
-    for (let i = 0; i < 16; i++) this.configSwitches.push(false);
+    this.d.configSwitches = [];
+    this.d.shutter = false;
+    this.d.frontLockout = false;
+    this.d.outputOverride = false;
+    for (let i = 0; i < 16; i++) this.d.configSwitches.push(false);
 
     // Setup serial port
     this.port = new SerialPort(port, {
@@ -101,15 +102,15 @@ class Inficon {
   }
 
   query() {
-    if (this.filmNOK()) { this.send('C', false); return; } // Illegal ID
+    if (this.d.filmNOK()) { this.send('C', false); return; } // Illegal ID
     const film = parseInt(this.cmd[3], 10); // all queries and updates are to films
-    const p0 = this.films[film - 1].tooling.toString();
-    const p1 = this.films[film - 1].finalThickness.toString();
-    const p2 = this.films[film - 1].SPTThickness.toString();
-    const p3 = this.films[film - 1].density.toString();
-    const p4 = this.films[film - 1].zRatio.toString();
-    const p5 = timeToString(this.films[film - 1].SPTTime);
-    const p6 = (this.film + 1).toString();
+    const p0 = this.d.films[film - 1].tooling.toString();
+    const p1 = this.d.films[film - 1].finalThickness.toString();
+    const p2 = this.d.films[film - 1].SPTThickness.toString();
+    const p3 = this.d.films[film - 1].density.toString();
+    const p4 = this.d.films[film - 1].zRatio.toString();
+    const p5 = timeToString(this.d.films[film - 1].SPTTime);
+    const p6 = (this.d.film + 1).toString();
     switch (this.cmd[2]) {
     case '0': // Tooling
       this.send(p0, true);
@@ -142,7 +143,7 @@ class Inficon {
   }
 
   update() {
-    if (this.filmNOK()) { this.send('C', false); return; } // Illegal ID
+    if (this.d.filmNOK()) { this.send('C', false); return; } // Illegal ID
     const [, , param, filmarg, a0, a1, a2, a3, a4, a5] = this.cmd;
     const film = parseInt(filmarg, 10); // all queries and updates are to films
     if (typeof a0 === 'undefined') { this.send('B', false); return; } // Illegal value
@@ -194,7 +195,7 @@ class Inficon {
         this.send('B', false);
         return;
       }
-      this.films[film - 1].tooling = fValue;
+      this.d.films[film - 1].tooling = fValue;
     }
     // final thickness
     if (p1 !== null) {
@@ -203,7 +204,7 @@ class Inficon {
         this.send('B', false);
         return;
       }
-      this.films[film - 1].finalThickness = fValue;
+      this.d.films[film - 1].finalThickness = fValue;
     }
     // SPT thickness
     if (p2 !== null) {
@@ -212,7 +213,7 @@ class Inficon {
         this.send('B', false);
         return;
       }
-      this.films[film - 1].SPTThickness = fValue;
+      this.d.films[film - 1].SPTThickness = fValue;
     }
     // density
     if (p3 !== null) {
@@ -221,7 +222,7 @@ class Inficon {
         this.send('B', false);
         return;
       }
-      this.films[film - 1].density = fValue;
+      this.d.films[film - 1].density = fValue;
     }
     // z ratio
     if (p4 !== null) {
@@ -230,7 +231,7 @@ class Inficon {
         this.send('B', false);
         return;
       }
-      this.films[film - 1].zRatio = fValue;
+      this.d.films[film - 1].zRatio = fValue;
     }
     // SPTTime
     if (p5 !== null) {
@@ -242,11 +243,11 @@ class Inficon {
         this.send('B', false);
         return;
       }
-      this.films[film - 1].SPTTime = secs;
+      this.d.films[film - 1].SPTTime = secs;
     }
     // current film
     if (p6 !== null) {
-      this.film = parseInt(p6, 10) - 1;
+      this.d.film = parseInt(p6, 10) - 1;
     }
     this.send('', true); // TODO - do not know response for Update wuery
   }
@@ -258,45 +259,45 @@ class Inficon {
     let sep = '';
     switch (param) {
     case '0': // Rate, Thickness, Time, Xtal-Life
-      this.send(`${this.rate} ${this.thickness} ${timeToString(this.depositTime)} ${this.crystalLife}`, true);
+      this.send(`${this.d.rate} ${this.d.thickness} ${timeToString(this.d.depositTime)} ${this.d.crystalLife}`, true);
       break;
     case '1': // rate
-      this.send(`${this.rate}`, true);
+      this.send(`${this.d.rate}`, true);
       break;
     case '2': // Thickness
-      this.send(`${this.thickness}`, true);
+      this.send(`${this.d.thickness}`, true);
       break;
     case '3': // deposit time
-      this.send(`${timeToString(this.depositTime)}`, true);
+      this.send(`${timeToString(this.d.depositTime)}`, true);
       break;
     case '4': // Film
-      this.send(`${this.film + 1}`, true);
+      this.send(`${this.d.film + 1}`, true);
       break;
     case '5': // Crystal Life
-      this.send(`${this.crystalLife}`, true);
+      this.send(`${this.d.crystalLife}`, true);
       break;
     case '6': // Output Status
       txt = '0000';
       for (i = 3; i >= 0; i--) {
-        txt += this.outputs[i] ? '1' : '0';
+        txt += this.d.outputs[i] ? '1' : '0';
       }
       this.send(`${txt}`, true);
       break;
     case '7': // Input Status
       txt = '000';
       for (i = 4; i >= 0; i--) {
-        txt += this.inputs[i] ? '1' : '0';
+        txt += this.d.inputs[i] ? '1' : '0';
       }
       this.send(`${txt}`, true);
       break;
     case '8': // crystal frequency
-      txt = this.xtalFrequency.status ? ' ' : '-';
-      txt += numeral(this.xtalFrequency.value).format('000000.0');
-      if (this.xtalFrequency.averaging === 0.25) {
+      txt = this.d.xtalFrequency.status ? ' ' : '-';
+      txt += numeral(this.d.xtalFrequency.value).format('000000.0');
+      if (this.d.xtalFrequency.averaging === 0.25) {
         txt += 0;
-      } else if (this.xtalFrequency.averaging === 4) {
+      } else if (this.d.xtalFrequency.averaging === 4) {
         txt += 2;
-      } else if (this.xtalFrequency.averaging === 16) {
+      } else if (this.d.xtalFrequency.averaging === 16) {
         txt += 1;
       } else {
         txt += 5;
@@ -304,25 +305,25 @@ class Inficon {
       this.send(`${txt}`, true);
       break;
     case '9': // Crystal Fail
-      txt = this.xtalFrequency.status ? '0' : '1';
+      txt = this.d.xtalFrequency.status ? '0' : '1';
       this.send(`${txt}`, true);
       break;
     case '10': // Config switch settings
       txt = '';
       for (i = 15; i >= 0; i--) {
-        txt += this.configSwitches[i] ? '1' : '0';
+        txt += this.d.configSwitches[i] ? '1' : '0';
       }
       this.send(`${txt}`, true);
       break;
     case '11': // Power-up Errors
       txt = '';
-      if (this.powerupErrors.paramChecksum) { txt += `0${sep}`; sep = ' '; }
-      if (this.powerupErrors.stbyOn) { txt += `1${sep}`; sep = ' '; }
-      if (this.powerupErrors.linePower) { txt += `2${sep}`; sep = ' '; }
-      if (this.powerupErrors.procDataChecksum) { txt += `9${sep}`; sep = ' '; }
+      if (this.d.powerupErrors.paramChecksum) { txt += `0${sep}`; sep = ' '; }
+      if (this.d.powerupErrors.stbyOn) { txt += `1${sep}`; sep = ' '; }
+      if (this.d.powerupErrors.linePower) { txt += `2${sep}`; sep = ' '; }
+      if (this.d.powerupErrors.procDataChecksum) { txt += `9${sep}`; sep = ' '; }
       if (txt === '') txt = '10';
       this.send(`${txt}`, true);
-      this.powerupErrors.stbyOn = false; // reset on read
+      this.d.powerupErrors.stbyOn = false; // reset on read
       break;
     case '12': // Datalog Ouutput
       this.send('TODO: Unsupported in Sim', true);
@@ -330,7 +331,7 @@ class Inficon {
     case '13': // Config switch settings
       txt = '';
       for (i = 15; i >= 0; i--) {
-        txt += this.configSwitches[i] ? '1' : '0';
+        txt += this.d.configSwitches[i] ? '1' : '0';
       }
       this.send(`${txt}`, true);
       break;
@@ -345,42 +346,42 @@ class Inficon {
     let value;
     switch (param) {
     case '0': // Open Shutter
-      this.shutter = true;
+      this.d.shutter = true;
       break;
     case '1': // Close Shutter
-      this.shutter = false;
+      this.d.shutter = false;
       break;
     case '2': // Lock front panel
-      this.frontLockout = true;
+      this.d.frontLockout = true;
       break;
     case '3': // Unlock front panel
-      this.frontLockout = false;
+      this.d.frontLockout = false;
       break;
     case '4': // Zero thickness
-      this.thickness = 0;
+      this.d.thickness = 0;
       break;
     case '5': // Zero timer
-      this.depositTime = 0;
+      this.d.depositTime = 0;
       break;
     case '6': // Output override on
-      this.outputOverride = true;
+      this.d.outputOverride = true;
       break;
     case '7': // Output override off
-      this.outputOverride = false;
+      this.d.outputOverride = false;
       break;
     case '8': // Set output number
     case '9': // Clear output number
       if (typeof valueTxt === 'undefined') { this.send('B', false); return; }
-      if (!this.outputOverride) { this.send('F', false); return; }
+      if (!this.d.outputOverride) { this.send('F', false); return; }
       value = parseInt(valueTxt, 10);
       if (value < 1 || value > 4) { this.send('B', false); return; }
-      this.outputs[value - 1] = (param === '8');
+      this.d.outputs[value - 1] = (param === '8');
       break;
     case '10': // Clear power up error messages
-      this.powerupErrors.paramChecksum = false;
-      this.powerupErrors.stbyOn = false;
-      this.powerupErrors.linePower = false;
-      this.powerupErrors.procDataChecksum = false;
+      this.d.powerupErrors.paramChecksum = false;
+      this.d.powerupErrors.stbyOn = false;
+      this.d.powerupErrors.linePower = false;
+      this.d.powerupErrors.procDataChecksum = false;
       break;
     case '23': // Set 250 ms data ready IEEE only
       break;

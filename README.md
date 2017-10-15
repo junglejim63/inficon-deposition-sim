@@ -99,3 +99,41 @@ Remote commands follow pattern R P n, where P is parameter as described below an
 | 10 | Clear power up error messages. | N/A | ACK only |
 | 23 | Set "250ms Data Ready" Service request (IEEE only). | N/A | ACK only |
 | 24 | Clear "250ms Data Ready" Service request (IEEE only). | N/A | ACK only |
+
+### Running the simulator
+The simulation is a node program, execute via `node inficon.js` or `npm start`.  The Inficon simulator is a JavaScript class, instantiated as `inst`; the REPL prompt context includes access to `inst` and the simulated instrument properties, `inst.d`.  All simulated parameters may be get/set through REPL.  Object structure (object name: inst.d):
+```json
+{
+  "films": [
+    { "tooling": 101, "finalThickness": 21, "SPTThickness": 11, "density": 30.1, "zRatio": 2.1, "SPTTime": 4801, "filmNum": 1 },
+    { "tooling": 102, "finalThickness": 22, "SPTThickness": 12, "density": 30.2, "zRatio": 2.2, "SPTTime": 4802, "filmNum": 2 },
+    { "tooling": 103, "finalThickness": 23, "SPTThickness": 13, "density": 30.3, "zRatio": 2.3, "SPTTime": 4803, "filmNum": 3 },
+    { "tooling": 104, "finalThickness": 24, "SPTThickness": 14, "density": 30.4, "zRatio": 2.4, "SPTTime": 4804, "filmNum": 4 },
+    { "tooling": 105, "finalThickness": 25, "SPTThickness": 15, "density": 30.5, "zRatio": 2.5, "SPTTime": 4805, "filmNum": 5 },
+    { "tooling": 106, "finalThickness": 26, "SPTThickness": 16, "density": 30.6, "zRatio": 2.6, "SPTTime": 4806, "filmNum": 6 },
+    { "tooling": 107, "finalThickness": 27, "SPTThickness": 17, "density": 30.7, "zRatio": 2.7, "SPTTime": 4807, "filmNum": 7 },
+    { "tooling": 108, "finalThickness": 28, "SPTThickness": 18, "density": 30.8, "zRatio": 2.8, "SPTTime": 4808, "filmNum": 8 },
+    { "tooling": 109, "finalThickness": 29, "SPTThickness": 19, "density": 30.9, "zRatio": 2.9, "SPTTime": 4809, "filmNum": 9 },
+  ],
+  "name": "Inficon Xtal thickness checker",
+  "rate": 0,
+  "thickness": 0,
+  "depositTime": 0,
+  "film": 0,
+  "crystalLife": 50,
+  "outputs": [false, false, false, false],
+  "inputs": [false, false, false, false, false],
+  "xtalFrequency": { "status": true, "value": 34.4, "averaging": 1 },
+  "powerupErrors": { "paramChecksum": false, "stbyOn": true, "linePower": false, "procDataChecksum": false  },
+  "configSwitches": [false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false],
+  "shutter": false,
+  "frontLockout": false,
+  "outputOverride": false
+}
+```
+No extra logic is currently provided, some ideas:
+* Logic that increases thickness at some rate when the shutter is open.
+* Logic that increases the depositTime when shutter is open.
+* A web interface to the simulated values to facilitate monitoring and updates.
+
+Jim Wiesler
